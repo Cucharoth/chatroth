@@ -36,7 +36,7 @@ def handle_client(client_socket):
 def main():
     try:
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.bind(("0.0.0.0", 10000))
+        server.bind(("0.0.0.0", 666))
         server.listen(5)
         print("Servidor inicializado, esperando conexión...")
         def sigint_handler():
