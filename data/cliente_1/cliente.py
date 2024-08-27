@@ -6,6 +6,8 @@ from Crypto.Random import get_random_bytes
 sys.path.append('../')
 from crypto import *
 
+all_messages = []
+
 # Recibe e imprime mensaje
 def receive_messages(client_socket):
     while True:
@@ -13,12 +15,18 @@ def receive_messages(client_socket):
             message_encrypted_key = load_encrypted_key('../cliente_2/encrypted_symmetric_key')
             decrypted_key = decrypt_symmetric_key(private_key, message_encrypted_key)
             ciphertext = client_socket.recv(1024)
-            message = decrypt(ciphertext, decrypted_key).decode()
-            if message:
-                print(f"{message}")
+            if ciphertext == b'newconexion':
+                for message in all_messages:
+                    ciphertext = encrypt(f'{message}'.encode('utf-8'), symmetric_key)
+                    client_socket.send(ciphertext)
             else:
-                break
-        except:
+                message = decrypt(ciphertext, decrypted_key).decode()
+                if message:
+                    print(f"{message}")
+                else:
+                    break
+        except Exception as e:
+            print(f"except?: {e}")
             break
 
 # Genera par de claves
@@ -62,6 +70,7 @@ def main():
 
         while True:
             message = input("You: ")
+            all_messages.append(f'{user_name}: {message}')
             ciphertext = encrypt(f'{user_name}: {message}'.encode('utf-8'), symmetric_key)
             client.send(ciphertext)
     finally: 
