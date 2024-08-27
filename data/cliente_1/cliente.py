@@ -16,13 +16,17 @@ def receive_messages(client_socket):
             decrypted_key = decrypt_symmetric_key(private_key, message_encrypted_key)
             ciphertext = client_socket.recv(1024)
             if ciphertext == b'newconexion':
-                for message in all_messages:
-                    ciphertext = encrypt(f'{message}'.encode('utf-8'), symmetric_key)
+                if len(all_messages):
+                    whole_message = ""
+                    for message in all_messages:
+                        whole_message += "\n" + message                   
+                    ciphertext = encrypt(f'{whole_message}'.encode('utf-8'), symmetric_key)
                     client_socket.send(ciphertext)
             else:
                 message = decrypt(ciphertext, decrypted_key).decode()
                 if message:
                     print(f"{message}")
+                    all_messages.append(message)
                 else:
                     break
         except Exception as e:
@@ -69,6 +73,8 @@ def main():
 
         while True:
             message = input("You: ")
+            if message == '/logout':
+                client.close()
             all_messages.append(f'{user_name}: {message}')
             ciphertext = encrypt(f'{user_name}: {message}'.encode('utf-8'), symmetric_key)
             client.send(ciphertext)

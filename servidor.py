@@ -8,12 +8,12 @@ all_messages = {}
 
 def broadcast(message, sender_socket):
     """Send the message to all clients except the sender."""
-    # allMessages.append(message)
     for client in clients:
         if client != sender_socket:
             try:
                 client.send(message)
-            except:
+            except Exception as e:
+                print(f"ERROR: {e}")
                 # If sending fails, remove the client
                 client.close()
                 clients.remove(client)
@@ -33,7 +33,8 @@ def handle_client(client_socket):
                 broadcast(message, client_socket)
             else:
                 break
-        except:
+        except Exception as e:
+            print(f"ERROR: {e}")
             break
 
     # Remove the client if connection is lost
@@ -51,8 +52,6 @@ def main():
                 client.close()
             server.close()
         signal.signal(signal.SIGINT,sigint_handler)
-        
-            
         
         while True:
             client_socket, addr = server.accept()
