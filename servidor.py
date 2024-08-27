@@ -4,9 +4,11 @@ import signal
 
 # Lista con los clientes (sockets) conectados
 clients = []
+allMessages = []
 
 def broadcast(message, sender_socket):
     """Send the message to all clients except the sender."""
+    allMessages.append(message)
     for client in clients:
         if client != sender_socket:
             try:
@@ -18,6 +20,10 @@ def broadcast(message, sender_socket):
 
 def handle_client(client_socket):
     """Handle incoming messages from a client."""
+    #Send all messages to the new client
+    for message in allMessages:
+        client_socket.send("\n".encode('utf-8') + message)
+
     while True:
         try:
             message = client_socket.recv(1024)
