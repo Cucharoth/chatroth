@@ -5,24 +5,11 @@ from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad, unpad
 
-# Recibe e imprime mensaje
-def receive_messages(client_socket):
-    while True:
-        try:
-            message = client_socket.recv(1024)
-            if message:
-                print(f"Received: {message.decode('utf-8')}")
-            else:
-                break
-        except:
-            break
-
 def generate_rsa_key_pair():
     key = RSA.generate(2048)
     private_key = key.export_key()
     public_key = key.publickey().export_key()
     return private_key, public_key
-
 
 def save_private_key_to_pem(private_key, filename):
     with open(filename, 'wb') as file:
@@ -34,16 +21,23 @@ def load_private_key_from_pem(filename):
         private_key = file.read()
     return private_key
 
-
 def save_public_key_to_pem(public_key, filename):
     with open(filename, 'wb') as file:
         file.write(public_key)
-
 
 def load_public_key_from_pem(filename):
     with open(filename, 'rb') as file:
         public_key = file.read()
     return public_key
+
+def save_encrypted_key(encrypted_symmetric_key, filename):
+    with open(filename, 'wb') as file:
+        file.write(encrypted_symmetric_key)
+
+def load_encrypted_key(filename):
+    with open(filename, 'rb') as file:
+        public_key = file.read()
+    return public_key       
 
 def encrypt_symmetric_key(public_key, symmetric_key):
     rsa_key = RSA.import_key(public_key)
@@ -73,43 +67,51 @@ def decrypt(ciphertext, symmetric_key):
     plaintext = unpad(cipher.decrypt(ciphertext), AES.block_size)
     return plaintext
 
-# Generate RSA key pair
-private_key, public_key = generate_rsa_key_pair()
+# Recibe e imprime mensaje
+def receive_messages(client_socket):
+    while True:
+        try:
+            message_encrypted_key = load_encrypted_key('../cliente_1/encrypted_symmetric_key')
+            decrypted_key = decrypt_symmetric_key(private_key, message_encrypted_key)
+            ciphertext = client_socket.recv(1024)
+            message = decrypt(ciphertext, decrypted_key).decode()
+            if message:
+                print(f"{message}")
+            else:
+                break
+        except:
+            break
 
-# Save private key to PEM file
-save_private_key_to_pem(private_key, 'private.pem')
+# Genera par de claves
+# private_key, public_key = generate_rsa_key_pair()
 
-# Load private key from PEM file
+# Guarda clave privada en PEM file
+# save_private_key_to_pem(private_key, 'private.pem')
+
+# carga clave privada desde PEM file
 private_key = load_private_key_from_pem('private.pem')
 
-# Save public key to PEM file
-save_public_key_to_pem(public_key, 'public.pem')
+# Guarda clave publica en PEM file
+# save_public_key_to_pem(public_key, 'public.pem')
 
-# Load public key from PEM file
-public_key = load_public_key_from_pem('public.pem')
+# Carga clave publica desde PEM file
+public_key = load_public_key_from_pem('../cliente_1/public.pem')
 
-# Generate random symmetric key
+# Crea clave simétrica
 symmetric_key = get_random_bytes(32)
 
-# Encrypt the symmetric key using the public key
+# Encripta llave simétrica utilizando clave publica
 encrypted_key = encrypt_symmetric_key(public_key, symmetric_key)
+save_encrypted_key = save_encrypted_key(encrypted_key, 'encrypted_symmetric_key')
 
-# Encrypt the plaintext using the symmetric key
-#plaintext = b"Hello, world!"
-#ciphertext = encrypt(plaintext, symmetric_key)
+# Des-encripta llave simétrica utilizando clave privada
+# message_encrypted_key = load_encrypted_key('../cliente_2/encrypted_symmetric_key');
+# decrypted_key = decrypt_symmetric_key(private_key, encrypted_key)
 
-# Decrypt the symmetric key using the private key
-decrypted_key = decrypt_symmetric_key(private_key, encrypted_key)
-
-# Decrypt the ciphertext using the symmetric key
-decrypted_plaintext = decrypt(ciphertext, decrypted_key)
-
-print("Encrypted text:", ciphertext)
-print("Decrypted plaintext:", decrypted_plaintext.decode())
 
 def main():
     try: 
-        user_name = input('<<< Ingrese su nombre de usuario:')
+        user_name = input('<<< Ingrese su nombre de usuario: ')
 
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client.connect(("127.0.0.1", 666))
@@ -120,11 +122,10 @@ def main():
 
         while True:
             message = input("You: ")
-            ciphertext = encrypt(message, symmetric_key)
-            client.send(f'{user_name}: {message}'.encode('utf-8'))
+            ciphertext = encrypt(f'{user_name}: {message}'.encode('utf-8'), symmetric_key)
+            client.send(ciphertext)
     finally: 
         client.close()
 
 if __name__ == "__main__":
     main()
-main()

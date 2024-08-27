@@ -22,7 +22,7 @@ def handle_client(client_socket):
         try:
             message = client_socket.recv(1024)
             if message:
-                print(f"{message.decode('utf-8')}")
+                print(f"{message}")
                 broadcast(message, client_socket)
             else:
                 break
