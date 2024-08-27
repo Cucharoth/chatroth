@@ -4,11 +4,11 @@ import signal
 
 # Lista con los clientes (sockets) conectados
 clients = []
-allMessages = []
+all_messages = {}
 
 def broadcast(message, sender_socket):
     """Send the message to all clients except the sender."""
-    allMessages.append(message)
+    # allMessages.append(message)
     for client in clients:
         if client != sender_socket:
             try:
@@ -20,14 +20,15 @@ def broadcast(message, sender_socket):
 
 def handle_client(client_socket):
     """Handle incoming messages from a client."""
-    #Send all messages to the new client
-    for message in allMessages:
-        client_socket.send("\n".encode('utf-8') + message)
-
+    # Send all messages to the new client
     while True:
         try:
             message = client_socket.recv(1024)
             if message:
+                # Save the message to the client_messages dictionary
+                if client_socket not in all_messages:
+                    all_messages[client_socket] = []
+                all_messages[client_socket].append(message)
                 print(f"{message}")
                 broadcast(message, client_socket)
             else:
@@ -46,7 +47,6 @@ def main():
         server.listen(5)
         print("Servidor inicializado, esperando conexión...")
         def sigint_handler():
-            print("handler")
             for client in clients:
                 client.close()
             server.close()
@@ -58,6 +58,7 @@ def main():
             client_socket, addr = server.accept()
             print(f"Conexión exitosa con: {addr}")
             clients.append(client_socket)
+            clients[0].send(f'newconexion'.encode())
             thread = threading.Thread(target=handle_client, args=(client_socket,))
             thread.start()
 
@@ -66,9 +67,6 @@ def main():
         server.close()
 
 
-    
-
 if __name__ == "__main__":
     main()
 
-main()
