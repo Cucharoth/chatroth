@@ -53,7 +53,8 @@ def main():
         user_name = input('<<< Ingrese su nombre de usuario: ')
 
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client.connect(("127.0.0.1", 10000))
+        client.bind(("127.0.0.1", 11004))
+        client.connect(("127.0.0.1", 10005))
 
         # Crea hilo para conexiones entrantes
         receive_thread = threading.Thread(target=receive_messages, args=(client,))
