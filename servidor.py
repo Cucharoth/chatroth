@@ -11,7 +11,7 @@ def broadcast(message, sender_socket):
         if client != sender_socket:
             try:
                 client.send(message)
-            except:
+            except socket.error:  
                 # If sending fails, remove the client
                 client.close()
                 clients.remove(client)
@@ -26,7 +26,7 @@ def handle_client(client_socket):
                 broadcast(message, client_socket)
             else:
                 break
-        except:
+        except socket.error:
             break
 
     # Remove the client if connection is lost
@@ -59,8 +59,6 @@ def main():
         # Clean up the connection
         server.close()
 
-
-    
 
 if __name__ == "__main__":
     main()
