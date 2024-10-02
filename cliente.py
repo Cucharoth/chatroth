@@ -1,7 +1,6 @@
 import socket
 import threading
 import sys
-from logger_config import logger
 class Client(): 
     def __init__(self) -> None:
         self.all_messages = []
@@ -22,7 +21,7 @@ class Client():
                         print(message.decode('utf-8'))
                         self.all_messages.append(message.decode('utf-8'))
             except socket.error as e:
-                logger.error(f"Socket error: {e}")
+                print(f"Socket error: {e}")
                 break
 
     def main(self):
@@ -52,7 +51,7 @@ class Client():
                 self.all_messages.append(f'{self.user_name}: {message}')
                 client.send(f'{self.user_name}: {message}'.encode('utf-8')) 
         except socket.error as e:
-            logger.error(f"Socket error: {e}")
+            print(f"Socket error: {e}")
         finally: 
             client.close()
             print('\nHistorial de mensajes:')
